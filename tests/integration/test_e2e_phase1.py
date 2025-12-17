@@ -16,9 +16,62 @@ import tempfile
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
+import boto3
 import pytest
+from moto import mock_aws
 
 from src.guardrails.handlers.budgets_event import lambda_handler
+
+
+@pytest.fixture
+def aws_credentials():
+    """Mock AWS credentials for boto3."""
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
+
+@pytest.fixture
+def mock_aws_services(aws_credentials):
+    """Mock AWS services (DynamoDB, IAM) for integration tests."""
+    with mock_aws():
+        # Create DynamoDB table for audit logs
+        dynamodb = boto3.client("dynamodb", region_name="us-east-1")
+        dynamodb.create_table(
+            TableName="autoguardrails-audit",
+            KeySchema=[{"AttributeName": "execution_id", "KeyType": "HASH"}],
+            AttributeDefinitions=[
+                {"AttributeName": "execution_id", "AttributeType": "S"},
+                {"AttributeName": "policy_id", "AttributeType": "S"},
+                {"AttributeName": "executed_at", "AttributeType": "S"},
+            ],
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": "policy_id-executed_at-index",
+                    "KeySchema": [
+                        {"AttributeName": "policy_id", "KeyType": "HASH"},
+                        {"AttributeName": "executed_at", "KeyType": "RANGE"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+
+        # Create IAM resources
+        iam = boto3.client("iam", region_name="us-east-1")
+        iam.create_role(
+            RoleName="test-role",
+            AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
+        )
+        iam.create_role(
+            RoleName="ci-deployer",
+            AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
+        )
+
+        yield
 
 
 @pytest.fixture
@@ -202,7 +255,9 @@ class TestE2EDryRunFlow:
 class TestE2EManualApprovalFlow:
     """Test complete manual approval flow."""
 
-    def test_high_cost_event_triggers_manual_approval(self, temp_policies_dir):
+    def test_high_cost_event_triggers_manual_approval(
+        self, temp_policies_dir, mock_aws_services
+    ):
         """Test that high-cost event triggers manual approval notification."""
         event = {
             "budgetName": "monthly-budget",
@@ -218,6 +273,7 @@ class TestE2EManualApprovalFlow:
             {
                 "SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/test",
                 "POLICIES_PATH": temp_policies_dir,
+                "DYNAMODB_TABLE_NAME": "autoguardrails-audit",
             },
         ):
             with patch("requests.post") as mock_post:
@@ -329,7 +385,9 @@ class TestE2ENoMatch:
 class TestE2EGlobalDryRun:
     """Test global DRY_RUN override."""
 
-    def test_global_dry_run_overrides_manual_policy(self, temp_policies_dir):
+    def test_global_dry_run_overrides_manual_policy(
+        self, temp_policies_dir, mock_aws_services
+    ):
         """Test that DRY_RUN=true forces dry-run mode even for manual policies."""
         event = {
             "budgetName": "test-budget",
@@ -344,6 +402,7 @@ class TestE2EGlobalDryRun:
             {
                 "SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/test",
                 "POLICIES_PATH": temp_policies_dir,
+                "DYNAMODB_TABLE_NAME": "autoguardrails-audit",
                 "DRY_RUN": "true",  # Global override
             },
         ):
