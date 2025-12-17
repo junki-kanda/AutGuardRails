@@ -38,9 +38,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/yourusername/autoguardrails"
-Documentation = "https://github.com/yourusername/autoguardrails/blob/main/README.md"
-Repository = "https://github.com/yourusername/autoguardrails"
+Homepage = "https://github.com/junki-kanda/AutGuardRails"
+Documentation = "https://github.com/junki-kanda/AutGuardRails/blob/main/README.md"
+Repository = "https://github.com/junki-kanda/AutGuardRails"
 
 [build-system]
 requires = ["setuptools>=68.0.0", "wheel"]
