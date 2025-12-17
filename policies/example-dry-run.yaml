@@ -1,0 +1,57 @@
+# Example Policy: Dry-Run Monitoring
+# This is a safe, read-only policy for testing and monitoring.
+
+policy_id: "example-dry-run-monitoring"
+description: "Monitor all budget alerts (dry-run mode, no actions)"
+enabled: true
+
+# Execution mode: dry_run = notify only, no actions
+mode: "dry_run"
+ttl_minutes: 0  # N/A for dry-run mode
+
+# Match conditions
+match:
+  # Event sources to monitor
+  source:
+    - "budgets"
+    - "anomaly"
+
+  # AWS account IDs (replace with your account IDs)
+  account_ids:
+    - "123456789012"  # Example account ID
+
+  # Minimum cost to trigger (in USD)
+  min_amount_usd: 0  # Match any amount (for monitoring)
+
+  # Optional: Filter by specific services
+  # services:
+  #   - "Amazon Elastic Compute Cloud"
+  #   - "Amazon RDS"
+
+  # Optional: Filter by specific regions
+  # regions:
+  #   - "us-east-1"
+  #   - "ap-northeast-1"
+
+# Target scope (who to restrict - N/A for dry-run, but required field)
+scope:
+  principals:
+    - type: "iam_role"
+      arn: "arn:aws:iam::123456789012:role/example-role"  # Placeholder
+
+# Actions to execute
+actions:
+  - type: "notify_only"  # Only send Slack notification
+
+# Notification settings
+notify:
+  # SSM parameter containing Slack webhook URL
+  slack_webhook_ssm_param: "/guardrails/slack_webhook"
+
+  # Optional: Slack channel (informational)
+  channel_hint: "#cost-alerts"
+
+  # Optional: Users/groups to mention
+  # mention_users:
+  #   - "@platform-team"
+  #   - "@oncall"

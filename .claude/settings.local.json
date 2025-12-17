@@ -1,0 +1,23 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.scriptsmake.ps1 test)",
+      "Bash(pwsh:*)",
+      "Bash(python -m pytest tests/ -v --cov=src --cov-report=term-missing)",
+      "Bash(python -m pip install:*)",
+      "Bash(python -m pytest tests/ -v)",
+      "Bash(python -m pytest tests/unit/test_notifier_slack.py -v)",
+      "Bash(python -m pytest tests/ -v --cov=src)",
+      "Bash(python:*)",
+      "Bash(findstr:*)",
+      "Bash(test:*)",
+      "Bash(cat:*)",
+      "Read(//c/Users/jkwrr/Documents/**)",
+      "Bash(git init:*)",
+      "Bash(git config:*)",
+      "Bash(git add:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
