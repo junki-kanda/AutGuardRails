@@ -292,7 +292,7 @@ def load_policies_from_directory(
         raise ValueError(f"Path is not a directory: {directory}")
 
     policies = []
-    policy_files = list(directory.glob(pattern))
+    policy_files = sorted(directory.glob(pattern))
 
     logger.info(f"Found {len(policy_files)} policy files in {directory}")
 
