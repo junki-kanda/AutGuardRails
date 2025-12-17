@@ -256,7 +256,9 @@ class TestE2EManualApprovalFlow:
     """Test complete manual approval flow."""
 
     def test_high_cost_event_triggers_manual_approval(
-        self, temp_policies_dir, mock_aws_services
+        self,
+        temp_policies_dir,
+        mock_aws_services,
     ):
         """Test that high-cost event triggers manual approval notification."""
         event = {
@@ -386,7 +388,9 @@ class TestE2EGlobalDryRun:
     """Test global DRY_RUN override."""
 
     def test_global_dry_run_overrides_manual_policy(
-        self, temp_policies_dir, mock_aws_services
+        self,
+        temp_policies_dir,
+        mock_aws_services,
     ):
         """Test that DRY_RUN=true forces dry-run mode even for manual policies."""
         event = {
