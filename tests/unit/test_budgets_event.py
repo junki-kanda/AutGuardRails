@@ -5,6 +5,7 @@ import os
 from unittest.mock import MagicMock, patch
 
 import pytest
+from moto import mock_aws
 
 from src.guardrails.handlers.budgets_event import (
     execute_action_plan,
@@ -266,8 +267,41 @@ class TestExecuteActionPlan:
                 assert result["action"] == "none"
                 mock_notifier.send_dry_run_alert.assert_called_once()
 
+    @mock_aws
     def test_execute_manual_mode(self):
         """Test executing manual approval mode."""
+        import boto3
+
+        # Setup DynamoDB
+        dynamodb = boto3.client("dynamodb", region_name="us-east-1")
+        dynamodb.create_table(
+            TableName="autoguardrails-audit",
+            KeySchema=[{"AttributeName": "execution_id", "KeyType": "HASH"}],
+            AttributeDefinitions=[
+                {"AttributeName": "execution_id", "AttributeType": "S"},
+                {"AttributeName": "policy_id", "AttributeType": "S"},
+                {"AttributeName": "executed_at", "AttributeType": "S"},
+            ],
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": "policy_id-executed_at-index",
+                    "KeySchema": [
+                        {"AttributeName": "policy_id", "KeyType": "HASH"},
+                        {"AttributeName": "executed_at", "KeyType": "RANGE"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                }
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+
+        # Setup IAM
+        iam = boto3.client("iam", region_name="us-east-1")
+        iam.create_role(
+            RoleName="test",
+            AssumeRolePolicyDocument='{"Version": "2012-10-17", "Statement": []}',
+        )
+
         event = CostEvent(
             event_id="evt-123",
             source="budgets",
@@ -286,7 +320,14 @@ class TestExecuteActionPlan:
             target_principals=["arn:aws:iam::123456789012:role/test"],
         )
 
-        with patch.dict(os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx"}):
+        with patch.dict(
+            os.environ,
+            {
+                "SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx",
+                "DYNAMODB_TABLE_NAME": "autoguardrails-audit",
+                "AWS_DEFAULT_REGION": "us-east-1",
+            },
+        ):
             with patch(
                 "src.guardrails.handlers.budgets_event.SlackNotifier"
             ) as mock_notifier_class:
