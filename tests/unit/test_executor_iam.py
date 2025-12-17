@@ -10,10 +10,11 @@ from src.guardrails.executor_iam import IAMExecutor
 from src.guardrails.models import ActionExecution, ActionPlan, PolicyAction
 
 
-@pytest.fixture(scope="function")
+@pytest.fixture
 def aws_credentials():
     """Mock AWS credentials for boto3."""
     import os
+
     os.environ["AWS_ACCESS_KEY_ID"] = "testing"
     os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
     os.environ["AWS_SECURITY_TOKEN"] = "testing"
