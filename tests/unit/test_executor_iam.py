@@ -22,6 +22,13 @@ def iam_executor_dry_run():
     return IAMExecutor(dry_run=True)
 
 
+@pytest.fixture
+def mock_iam():
+    """Mock AWS IAM for tests."""
+    with mock_aws():
+        yield boto3.client("iam", region_name="us-east-1")
+
+
 class TestIAMExecutorInit:
     """Test IAM Executor initialization."""
 
@@ -135,12 +142,10 @@ class TestExecuteActionPlan:
         assert executions[0].diff["dry_run"] is True
         assert "ec2:RunInstances" in executions[0].diff["would_deny"]
 
-    @mock_aws
-    def test_execute_attach_deny_policy_real(self, iam_executor):
+    def test_execute_attach_deny_policy_real(self, iam_executor, mock_iam):
         """Test executing attach_deny_policy with real AWS API calls (mocked)."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
@@ -178,16 +183,14 @@ class TestExecuteActionPlan:
         assert diff["principal_name"] == "test-role"
         assert "ec2:RunInstances" in diff["denied_actions"]
 
-    @mock_aws
-    def test_execute_multiple_principals(self, iam_executor):
+    def test_execute_multiple_principals(self, iam_executor, mock_iam):
         """Test executing action on multiple principals."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
-        iam.create_user(UserName="test-user")
+        mock_iam.create_user(UserName="test-user")
 
         plan = ActionPlan(
             matched=True,
@@ -208,12 +211,10 @@ class TestExecuteActionPlan:
         assert executions[0].target == "arn:aws:iam::123456789012:role/test-role"
         assert executions[1].target == "arn:aws:iam::123456789012:user/test-user"
 
-    @mock_aws
-    def test_execute_with_ttl(self, iam_executor):
+    def test_execute_with_ttl(self, iam_executor, mock_iam):
         """Test executing action with TTL sets expiration time."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
@@ -241,12 +242,10 @@ class TestExecuteActionPlan:
 class TestAttachDenyPolicy:
     """Test attach deny policy implementation."""
 
-    @mock_aws
-    def test_attach_deny_policy_to_role(self, iam_executor):
+    def test_attach_deny_policy_to_role(self, iam_executor, mock_iam):
         """Test attaching deny policy to role."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
@@ -264,12 +263,10 @@ class TestAttachDenyPolicy:
         assert "after" in result
         assert len(result["after"]) == 1  # Policy was attached
 
-    @mock_aws
-    def test_attach_deny_policy_to_user(self, iam_executor):
+    def test_attach_deny_policy_to_user(self, iam_executor, mock_iam):
         """Test attaching deny policy to user."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_user(UserName="test-user")
+        mock_iam.create_user(UserName="test-user")
 
         result = iam_executor._attach_deny_policy(
             principal_arn="arn:aws:iam::123456789012:user/test-user",
@@ -281,12 +278,10 @@ class TestAttachDenyPolicy:
         assert result["principal_name"] == "test-user"
         assert "dynamodb:DeleteTable" in result["denied_actions"]
 
-    @mock_aws
-    def test_attach_idempotent(self, iam_executor):
+    def test_attach_idempotent(self, iam_executor, mock_iam):
         """Test that attaching same policy twice is idempotent."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
@@ -369,12 +364,10 @@ class TestRollbackExecution:
         result = iam_executor_dry_run.rollback_execution(execution)
         assert result is True
 
-    @mock_aws
-    def test_rollback_attach_deny_policy(self, iam_executor):
+    def test_rollback_attach_deny_policy(self, iam_executor, mock_iam):
         """Test rollback of attach_deny_policy action."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
@@ -407,8 +400,7 @@ class TestRollbackExecution:
         assert execution.rolled_back_at is not None
 
         # Verify policy was detached
-        iam = boto3.client("iam", region_name="us-east-1")
-        attached = iam.list_attached_role_policies(RoleName="test-role")
+        attached = mock_iam.list_attached_role_policies(RoleName="test-role")
         assert len(attached["AttachedPolicies"]) == 0
 
     def test_rollback_dry_run_execution(self, iam_executor):
@@ -433,12 +425,10 @@ class TestRollbackExecution:
 class TestListAttachedPolicies:
     """Test listing attached policies."""
 
-    @mock_aws
-    def test_list_attached_role_policies(self, iam_executor):
+    def test_list_attached_role_policies(self, iam_executor, mock_iam):
         """Test listing attached policies for role."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_role(
+        mock_iam.create_role(
             RoleName="test-role",
             AssumeRolePolicyDocument='{"Version": "2012-10-17"}',
         )
@@ -447,12 +437,10 @@ class TestListAttachedPolicies:
         assert isinstance(policies, list)
         assert len(policies) == 0  # No policies attached initially
 
-    @mock_aws
-    def test_list_attached_user_policies(self, iam_executor):
+    def test_list_attached_user_policies(self, iam_executor, mock_iam):
         """Test listing attached policies for user."""
         # Setup IAM resources
-        iam = boto3.client("iam", region_name="us-east-1")
-        iam.create_user(UserName="test-user")
+        mock_iam.create_user(UserName="test-user")
 
         policies = iam_executor._list_attached_policies("user", "test-user")
         assert isinstance(policies, list)
