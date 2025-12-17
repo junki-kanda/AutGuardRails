@@ -10,23 +10,35 @@ from src.guardrails.executor_iam import IAMExecutor
 from src.guardrails.models import ActionExecution, ActionPlan, PolicyAction
 
 
+@pytest.fixture(scope="function")
+def aws_credentials():
+    """Mock AWS credentials for boto3."""
+    import os
+    os.environ["AWS_ACCESS_KEY_ID"] = "testing"
+    os.environ["AWS_SECRET_ACCESS_KEY"] = "testing"
+    os.environ["AWS_SECURITY_TOKEN"] = "testing"
+    os.environ["AWS_SESSION_TOKEN"] = "testing"
+    os.environ["AWS_DEFAULT_REGION"] = "us-east-1"
+
+
 @pytest.fixture
-def iam_executor():
-    """Create IAM Executor instance."""
+def mock_iam(aws_credentials):
+    """Mock AWS IAM for tests."""
+    with mock_aws():
+        iam = boto3.client("iam", region_name="us-east-1")
+        yield iam
+
+
+@pytest.fixture
+def iam_executor(mock_iam):
+    """Create IAM Executor instance within mocked AWS context."""
     return IAMExecutor(dry_run=False)
 
 
 @pytest.fixture
-def iam_executor_dry_run():
-    """Create IAM Executor in dry-run mode."""
+def iam_executor_dry_run(mock_iam):
+    """Create IAM Executor in dry-run mode within mocked AWS context."""
     return IAMExecutor(dry_run=True)
-
-
-@pytest.fixture
-def mock_iam():
-    """Mock AWS IAM for tests."""
-    with mock_aws():
-        yield boto3.client("iam", region_name="us-east-1")
 
 
 class TestIAMExecutorInit:
