@@ -6,12 +6,13 @@ Provides comprehensive audit trail for all guardrail actions.
 import logging
 import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 import boto3
 from botocore.exceptions import ClientError
 
 from .models import ActionExecution
+
 
 logger = logging.getLogger(__name__)
 
@@ -21,8 +22,8 @@ class AuditStore:
 
     def __init__(
         self,
-        table_name: Optional[str] = None,
-        region: Optional[str] = None,
+        table_name: str | None = None,
+        region: str | None = None,
     ):
         """Initialize Audit Store.
 
@@ -30,9 +31,7 @@ class AuditStore:
             table_name: DynamoDB table name (default: from env AUDIT_TABLE_NAME)
             region: AWS region (default: from env AWS_REGION or us-east-1)
         """
-        self.table_name = table_name or os.getenv(
-            "AUDIT_TABLE_NAME", "autoguardrails-audit"
-        )
+        self.table_name = table_name or os.getenv("AUDIT_TABLE_NAME", "autoguardrails-audit")
         self.region = region or os.getenv("AWS_REGION", "us-east-1")
 
         self.dynamodb = boto3.resource("dynamodb", region_name=self.region)
@@ -60,7 +59,7 @@ class AuditStore:
             )
             return False
 
-    def get_execution(self, execution_id: str) -> Optional[ActionExecution]:
+    def get_execution(self, execution_id: str) -> ActionExecution | None:
         """Retrieve execution by ID.
 
         Args:
@@ -104,9 +103,7 @@ class AuditStore:
             )
             return False
 
-    def query_executions_by_policy(
-        self, policy_id: str, limit: int = 100
-    ) -> list[ActionExecution]:
+    def query_executions_by_policy(self, policy_id: str, limit: int = 100) -> list[ActionExecution]:
         """Query executions for a specific policy.
 
         Args:
@@ -165,7 +162,7 @@ class AuditStore:
             return []
 
     def list_recent_executions(
-        self, limit: int = 50, status: Optional[str] = None
+        self, limit: int = 50, status: str | None = None
     ) -> list[ActionExecution]:
         """List recent executions.
 

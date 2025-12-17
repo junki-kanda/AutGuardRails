@@ -16,12 +16,13 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 
 from ..audit_store import AuditStore
 from ..executor_iam import IAMExecutor
 from ..models import ActionExecution
 from ..notifier_slack import SlackNotifier
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +32,9 @@ class TTLCleanupHandler:
 
     def __init__(
         self,
-        audit_store: Optional[AuditStore] = None,
-        executor: Optional[IAMExecutor] = None,
-        notifier: Optional[SlackNotifier] = None,
+        audit_store: AuditStore | None = None,
+        executor: IAMExecutor | None = None,
+        notifier: SlackNotifier | None = None,
         batch_size: int = 100,
     ):
         """Initialize TTL cleanup handler.
@@ -46,9 +47,7 @@ class TTLCleanupHandler:
         """
         self.audit_store = audit_store or AuditStore()
         self.executor = executor or IAMExecutor()
-        self.notifier = notifier or SlackNotifier(
-            webhook_url=os.getenv("SLACK_WEBHOOK_URL", "")
-        )
+        self.notifier = notifier or SlackNotifier(webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""))
         self.batch_size = batch_size
 
     def cleanup_expired_executions(self) -> dict[str, Any]:
@@ -112,9 +111,7 @@ class TTLCleanupHandler:
                         failed += 1
 
                 except Exception as e:
-                    logger.exception(
-                        f"Unexpected error rolling back {execution.execution_id}: {e}"
-                    )
+                    logger.exception(f"Unexpected error rolling back {execution.execution_id}: {e}")
                     failed += 1
                     errors.append(
                         {
@@ -165,9 +162,7 @@ class TTLCleanupHandler:
 
         # Idempotency: Only rollback if status is 'executed'
         if execution.status != "executed":
-            logger.info(
-                f"Skipping {execution_id}: status is '{execution.status}' (not 'executed')"
-            )
+            logger.info(f"Skipping {execution_id}: status is '{execution.status}' (not 'executed')")
             return "skipped"
 
         # Rollback via executor
@@ -248,6 +243,7 @@ class TTLCleanupHandler:
             # Create synthetic event for error notification
             # Use 'budgets' as source with marker in details
             from ..models import CostEvent
+
             synthetic_event = CostEvent(
                 event_id=f"ttl-cleanup-{int(datetime.utcnow().timestamp())}",
                 source="budgets",  # Use valid source

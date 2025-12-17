@@ -4,8 +4,7 @@ Unit tests for PolicyEngine (src/guardrails/policy_engine.py).
 Tests policy evaluation logic, matching, exceptions, and YAML loading.
 """
 
-from datetime import datetime, timedelta
-from pathlib import Path
+from datetime import datetime
 
 import pytest
 import yaml
@@ -54,14 +53,10 @@ def simple_policy():
         policy_id="test-policy",
         mode="dry_run",
         ttl_minutes=0,
-        match=PolicyMatch(
-            source=["budgets"], account_ids=["123456789012"], min_amount_usd=100.0
-        ),
+        match=PolicyMatch(source=["budgets"], account_ids=["123456789012"], min_amount_usd=100.0),
         scope=PolicyScope(
             principals=[
-                Principal(
-                    type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                )
+                Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
             ]
         ),
         actions=[PolicyAction(type="notify_only")],
@@ -105,9 +100,7 @@ class TestPolicyEngineEvaluate:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="notify_only")],
@@ -144,9 +137,7 @@ class TestPolicyEngineEvaluate:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="notify_only")],
@@ -299,17 +290,13 @@ class TestPolicyEngineTimeWindows:
 
         simple_policy.exceptions = PolicyExceptions(
             time_windows=[
-                TimeWindow(
-                    start="09:00", end="17:00", timezone="UTC", days=["mon", "tue", "wed"]
-                )
+                TimeWindow(start="09:00", end="17:00", timezone="UTC", days=["mon", "tue", "wed"])
             ]
         )
 
         # Note: This test is simplified - actual implementation needs proper datetime mocking
         # For now, we'll test the logic separately
-        is_exempted = policy_engine._in_exempted_time_window(
-            simple_policy.exceptions.time_windows
-        )
+        is_exempted = policy_engine._in_exempted_time_window(simple_policy.exceptions.time_windows)
 
         # This will depend on when test runs - just verify it returns a boolean
         assert isinstance(is_exempted, bool)
@@ -319,15 +306,11 @@ class TestPolicyEngineTimeWindows:
         # This test would need proper datetime mocking
         # For now, create a window that definitely doesn't match current time
         simple_policy.exceptions = PolicyExceptions(
-            time_windows=[
-                TimeWindow(start="02:00", end="03:00", timezone="UTC", days=["sat"])
-            ]
+            time_windows=[TimeWindow(start="02:00", end="03:00", timezone="UTC", days=["sat"])]
         )
 
         # Most likely won't be Saturday 2-3 AM when test runs
-        is_exempted = policy_engine._in_exempted_time_window(
-            simple_policy.exceptions.time_windows
-        )
+        is_exempted = policy_engine._in_exempted_time_window(simple_policy.exceptions.time_windows)
 
         # Just verify it returns a boolean (actual value depends on test runtime)
         assert isinstance(is_exempted, bool)
@@ -353,9 +336,7 @@ class TestPolicyLoading:
                 "min_amount_usd": 100.0,
             },
             "scope": {
-                "principals": [
-                    {"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}
-                ]
+                "principals": [{"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}]
             },
             "actions": [{"type": "notify_only"}],
             "notify": {"slack_webhook_ssm_param": "/guardrails/slack"},
@@ -390,9 +371,7 @@ class TestPolicyLoading:
                     "min_amount_usd": 100.0,
                 },
                 "scope": {
-                    "principals": [
-                        {"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}
-                    ]
+                    "principals": [{"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}]
                 },
                 "actions": [{"type": "notify_only"}],
                 "notify": {"slack_webhook_ssm_param": "/guardrails/slack"},
@@ -422,9 +401,7 @@ class TestPolicyLoading:
                     "min_amount_usd": 100.0,
                 },
                 "scope": {
-                    "principals": [
-                        {"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}
-                    ]
+                    "principals": [{"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}]
                 },
                 "actions": [{"type": "notify_only"}],
                 "notify": {"slack_webhook_ssm_param": "/guardrails/slack"},
@@ -457,9 +434,7 @@ class TestPolicyLoading:
                 "min_amount_usd": 100.0,
             },
             "scope": {
-                "principals": [
-                    {"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}
-                ]
+                "principals": [{"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/ci"}]
             },
             "actions": [{"type": "notify_only"}],
             "notify": {"slack_webhook_ssm_param": "/guardrails/slack"},
@@ -530,9 +505,7 @@ class TestPolicyEngineIntegration:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="notify_only")],
@@ -564,9 +537,7 @@ class TestPolicyEngineIntegration:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])],

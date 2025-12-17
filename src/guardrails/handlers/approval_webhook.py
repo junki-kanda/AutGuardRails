@@ -18,12 +18,12 @@ import json
 import logging
 import os
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 
 from ..audit_store import AuditStore
 from ..executor_iam import IAMExecutor
-from ..models import ActionExecution
 from ..notifier_slack import SlackNotifier
+
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +33,10 @@ class ApprovalWebhookHandler:
 
     def __init__(
         self,
-        audit_store: Optional[AuditStore] = None,
-        executor: Optional[IAMExecutor] = None,
-        notifier: Optional[SlackNotifier] = None,
-        approval_secret: Optional[str] = None,
+        audit_store: AuditStore | None = None,
+        executor: IAMExecutor | None = None,
+        notifier: SlackNotifier | None = None,
+        approval_secret: str | None = None,
         approval_timeout_hours: int = 1,
     ):
         """Initialize approval webhook handler.
@@ -50,9 +50,7 @@ class ApprovalWebhookHandler:
         """
         self.audit_store = audit_store or AuditStore()
         self.executor = executor or IAMExecutor()
-        self.notifier = notifier or SlackNotifier(
-            webhook_url=os.getenv("SLACK_WEBHOOK_URL", "")
-        )
+        self.notifier = notifier or SlackNotifier(webhook_url=os.getenv("SLACK_WEBHOOK_URL", ""))
         self.approval_secret = approval_secret or os.getenv(
             "APPROVAL_SECRET", "default-secret-CHANGE-ME"
         )
@@ -153,9 +151,7 @@ class ApprovalWebhookHandler:
             new_execution.execution_id = execution_id  # Keep original ID
             self.audit_store.update_execution(new_execution)
 
-            logger.info(
-                f"Successfully executed and updated execution {execution_id}"
-            )
+            logger.info(f"Successfully executed and updated execution {execution_id}")
 
             # 6. Notify Slack
             try:
@@ -187,9 +183,7 @@ class ApprovalWebhookHandler:
 
             return {"statusCode": 500, "body": f"Execution failed: {str(e)}"}
 
-    def generate_approval_url(
-        self, execution_id: str, base_url: str
-    ) -> dict[str, str]:
+    def generate_approval_url(self, execution_id: str, base_url: str) -> dict[str, str]:
         """Generate signed approval URL.
 
         Args:
@@ -202,18 +196,11 @@ class ApprovalWebhookHandler:
         timestamp = datetime.utcnow().isoformat()
         signature = self._generate_signature(execution_id, timestamp)
 
-        url = (
-            f"{base_url}/approve"
-            f"?id={execution_id}"
-            f"&sig={signature}"
-            f"&ts={timestamp}"
-        )
+        url = f"{base_url}/approve?id={execution_id}&sig={signature}&ts={timestamp}"
 
         return {"url": url, "signature": signature, "timestamp": timestamp}
 
-    def _verify_signature(
-        self, execution_id: str, timestamp: str, signature: str
-    ) -> bool:
+    def _verify_signature(self, execution_id: str, timestamp: str, signature: str) -> bool:
         """Verify HMAC signature.
 
         Args:

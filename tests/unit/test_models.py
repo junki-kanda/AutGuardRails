@@ -138,7 +138,10 @@ class TestTimeWindow:
         """Test days must be valid abbreviations."""
         with pytest.raises(ValidationError) as exc_info:
             TimeWindow(
-                start="09:00", end="17:00", timezone="UTC", days=["monday"]  # Full name
+                start="09:00",
+                end="17:00",
+                timezone="UTC",
+                days=["monday"],  # Full name
             )
         assert "invalid day" in str(exc_info.value).lower()
 
@@ -198,9 +201,7 @@ class TestPolicyMatch:
 
     def test_services_optional(self):
         """Test services field is optional."""
-        match = PolicyMatch(
-            source=["budgets"], account_ids=["123456789012"], min_amount_usd=100.0
-        )
+        match = PolicyMatch(source=["budgets"], account_ids=["123456789012"], min_amount_usd=100.0)
         assert match.services is None
 
 
@@ -214,16 +215,12 @@ class TestPrincipal:
 
     def test_valid_iam_role(self):
         """Test creating a valid IAM role principal."""
-        principal = Principal(
-            type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-        )
+        principal = Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
         assert principal.type == "iam_role"
 
     def test_valid_iam_user(self):
         """Test creating a valid IAM user principal."""
-        principal = Principal(
-            type="iam_user", arn="arn:aws:iam::123456789012:user/dev-user"
-        )
+        principal = Principal(type="iam_user", arn="arn:aws:iam::123456789012:user/dev-user")
         assert principal.type == "iam_user"
 
     def test_wildcard_arn_rejected(self):
@@ -251,9 +248,7 @@ class TestPolicyScope:
         """Test creating a valid PolicyScope."""
         scope = PolicyScope(
             principals=[
-                Principal(
-                    type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                )
+                Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
             ],
             regions=["us-east-1"],
         )
@@ -268,9 +263,7 @@ class TestPolicyScope:
         """Test regions field is optional."""
         scope = PolicyScope(
             principals=[
-                Principal(
-                    type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                )
+                Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
             ]
         )
         assert scope.regions is None
@@ -286,9 +279,7 @@ class TestPolicyAction:
 
     def test_attach_deny_policy_with_deny_list(self):
         """Test attach_deny_policy action with deny list."""
-        action = PolicyAction(
-            type="attach_deny_policy", deny=["ec2:RunInstances", "ec2:CreateVpc"]
-        )
+        action = PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances", "ec2:CreateVpc"])
         assert action.type == "attach_deny_policy"
         assert len(action.deny) == 2
 
@@ -337,9 +328,7 @@ class TestGuardrailPolicy:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])],
@@ -359,18 +348,14 @@ class TestGuardrailPolicy:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="notify_only")],
             notify=NotificationSettings(slack_webhook_ssm_param="/guardrails/slack"),
             exceptions=PolicyExceptions(
                 accounts=["999888777666"],
-                time_windows=[
-                    TimeWindow(start="09:00", end="17:00", timezone="UTC", days=["mon"])
-                ],
+                time_windows=[TimeWindow(start="09:00", end="17:00", timezone="UTC", days=["mon"])],
             ),
         )
         assert policy.exceptions is not None
@@ -441,9 +426,7 @@ class TestActionPlan:
     def test_matched_without_actions_fails(self):
         """Test matched=True requires actions."""
         with pytest.raises(ValidationError) as exc_info:
-            ActionPlan(
-                matched=True, matched_policy_id="test-policy", mode="manual", actions=[]
-            )
+            ActionPlan(matched=True, matched_policy_id="test-policy", mode="manual", actions=[])
         assert "actions" in str(exc_info.value).lower()
 
 
@@ -531,9 +514,7 @@ class TestNotificationPayload:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="notify_only")],
@@ -569,9 +550,7 @@ class TestNotificationPayload:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])],
@@ -630,9 +609,7 @@ class TestSerialization:
             ),
             scope=PolicyScope(
                 principals=[
-                    Principal(
-                        type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer"
-                    )
+                    Principal(type="iam_role", arn="arn:aws:iam::123456789012:role/ci-deployer")
                 ]
             ),
             actions=[PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])],

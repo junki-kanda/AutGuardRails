@@ -2,9 +2,7 @@
 
 import json
 import os
-from datetime import datetime
 from unittest.mock import MagicMock, patch
-from uuid import uuid4
 
 import pytest
 
@@ -45,9 +43,7 @@ class TestParseBudgetsNotification:
 
     def test_notification_without_budget_name(self):
         """Test parsing notification without budget name."""
-        notification = {
-            "calculatedSpend": {"actualSpend": {"amount": 100.0, "unit": "USD"}}
-        }
+        notification = {"calculatedSpend": {"actualSpend": {"amount": 100.0, "unit": "USD"}}}
 
         with pytest.raises(ValueError, match="Missing budgetName"):
             parse_budgets_notification(notification)
@@ -137,9 +133,7 @@ class TestExtractAccountId:
 
     def test_extract_from_notification_arn(self):
         """Test extraction from notificationArn."""
-        notification = {
-            "notificationArn": "arn:aws:budgets::987654321098:budget/test-budget"
-        }
+        notification = {"notificationArn": "arn:aws:budgets::987654321098:budget/test-budget"}
 
         account_id = extract_account_id(notification)
         assert account_id == "987654321098"
@@ -178,13 +172,15 @@ class TestParseEvent:
                 {
                     "EventSource": "aws:sns",
                     "Sns": {
-                        "Message": json.dumps({
-                            "budgetName": "test-budget",
-                            "calculatedSpend": {
-                                "actualSpend": {"amount": 300.0, "unit": "USD"}
-                            },
-                            "notificationArn": "arn:aws:budgets::123456789012:budget/test",
-                        })
+                        "Message": json.dumps(
+                            {
+                                "budgetName": "test-budget",
+                                "calculatedSpend": {
+                                    "actualSpend": {"amount": 300.0, "unit": "USD"}
+                                },
+                                "notificationArn": "arn:aws:budgets::123456789012:budget/test",
+                            }
+                        )
                     },
                 }
             ]
@@ -256,10 +252,10 @@ class TestExecuteActionPlan:
             target_principals=[],
         )
 
-        with patch.dict(
-            os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx"}
-        ):
-            with patch("src.guardrails.handlers.budgets_event.SlackNotifier") as mock_notifier_class:
+        with patch.dict(os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx"}):
+            with patch(
+                "src.guardrails.handlers.budgets_event.SlackNotifier"
+            ) as mock_notifier_class:
                 mock_notifier = MagicMock()
                 mock_notifier.send_dry_run_alert.return_value = True
                 mock_notifier_class.return_value = mock_notifier
@@ -290,10 +286,10 @@ class TestExecuteActionPlan:
             target_principals=["arn:aws:iam::123456789012:role/test"],
         )
 
-        with patch.dict(
-            os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx"}
-        ):
-            with patch("src.guardrails.handlers.budgets_event.SlackNotifier") as mock_notifier_class:
+        with patch.dict(os.environ, {"SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx"}):
+            with patch(
+                "src.guardrails.handlers.budgets_event.SlackNotifier"
+            ) as mock_notifier_class:
                 mock_notifier = MagicMock()
                 mock_notifier.send_approval_request.return_value = True
                 mock_notifier_class.return_value = mock_notifier
@@ -326,12 +322,15 @@ class TestExecuteActionPlan:
         )
 
         with patch.dict(
-            os.environ, {
+            os.environ,
+            {
                 "SLACK_WEBHOOK_URL": "https://hooks.slack.com/services/xxx",
-                "DYNAMODB_TABLE_NAME": "autoguardrails-audit"
-            }
+                "DYNAMODB_TABLE_NAME": "autoguardrails-audit",
+            },
         ):
-            with patch("src.guardrails.handlers.budgets_event.SlackNotifier") as mock_notifier_class:
+            with patch(
+                "src.guardrails.handlers.budgets_event.SlackNotifier"
+            ) as mock_notifier_class:
                 with patch("src.guardrails.executor_iam.IAMExecutor") as mock_executor_class:
                     with patch("src.guardrails.audit_store.AuditStore") as mock_audit_class:
                         # Setup mocks
@@ -404,9 +403,15 @@ class TestLambdaHandler:
                 "POLICIES_PATH": "policies",
             },
         ):
-            with patch("src.guardrails.handlers.budgets_event.load_policies_from_directory") as mock_load:
-                with patch("src.guardrails.handlers.budgets_event.PolicyEngine") as mock_engine_class:
-                    with patch("src.guardrails.handlers.budgets_event.execute_action_plan") as mock_execute:
+            with patch(
+                "src.guardrails.handlers.budgets_event.load_policies_from_directory"
+            ) as mock_load:
+                with patch(
+                    "src.guardrails.handlers.budgets_event.PolicyEngine"
+                ) as mock_engine_class:
+                    with patch(
+                        "src.guardrails.handlers.budgets_event.execute_action_plan"
+                    ) as mock_execute:
                         # Mock policy loading
                         mock_load.return_value = [MagicMock()]
 
@@ -444,7 +449,9 @@ class TestLambdaHandler:
         context = MagicMock()
 
         with patch.dict(os.environ, {"POLICIES_PATH": "policies"}):
-            with patch("src.guardrails.handlers.budgets_event.load_policies_from_directory") as mock_load:
+            with patch(
+                "src.guardrails.handlers.budgets_event.load_policies_from_directory"
+            ) as mock_load:
                 mock_load.return_value = []
 
                 response = lambda_handler(event, context)
@@ -463,8 +470,12 @@ class TestLambdaHandler:
         context = MagicMock()
 
         with patch.dict(os.environ, {"POLICIES_PATH": "policies"}):
-            with patch("src.guardrails.handlers.budgets_event.load_policies_from_directory") as mock_load:
-                with patch("src.guardrails.handlers.budgets_event.PolicyEngine") as mock_engine_class:
+            with patch(
+                "src.guardrails.handlers.budgets_event.load_policies_from_directory"
+            ) as mock_load:
+                with patch(
+                    "src.guardrails.handlers.budgets_event.PolicyEngine"
+                ) as mock_engine_class:
                     mock_load.return_value = [MagicMock()]
 
                     mock_engine = MagicMock()
@@ -502,9 +513,15 @@ class TestLambdaHandler:
                 "DRY_RUN": "true",
             },
         ):
-            with patch("src.guardrails.handlers.budgets_event.load_policies_from_directory") as mock_load:
-                with patch("src.guardrails.handlers.budgets_event.PolicyEngine") as mock_engine_class:
-                    with patch("src.guardrails.handlers.budgets_event.execute_action_plan") as mock_execute:
+            with patch(
+                "src.guardrails.handlers.budgets_event.load_policies_from_directory"
+            ) as mock_load:
+                with patch(
+                    "src.guardrails.handlers.budgets_event.PolicyEngine"
+                ) as mock_engine_class:
+                    with patch(
+                        "src.guardrails.handlers.budgets_event.execute_action_plan"
+                    ) as mock_execute:
                         mock_load.return_value = [MagicMock()]
 
                         mock_engine = MagicMock()

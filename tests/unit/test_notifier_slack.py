@@ -1,6 +1,5 @@
 """Tests for Slack Notifier."""
 
-import json
 from datetime import datetime, timedelta
 from unittest.mock import MagicMock, patch
 from uuid import uuid4
@@ -180,9 +179,7 @@ class TestSendApprovalRequest:
             matched=True,
             matched_policy_id="manual-policy",
             mode="manual",
-            actions=[
-                PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])
-            ],
+            actions=[PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])],
             ttl_minutes=180,
             target_principals=["arn:aws:iam::123456789012:role/ci-deployer"],
         )
@@ -412,9 +409,7 @@ class TestFormatActions:
         """Test formatting attach_deny_policy action."""
         notifier = SlackNotifier("https://hooks.slack.com/services/xxx")
 
-        actions = [
-            PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances", "ec2:*"])
-        ]
+        actions = [PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances", "ec2:*"])]
         formatted = notifier._format_actions(actions)
 
         assert "Attach deny policy" in formatted
@@ -550,12 +545,8 @@ class TestSlackNotifierIntegration:
             mock_response.status_code = 200
             mock_post.return_value = mock_response
 
-            approve_url = generate_approval_url(
-                "https://api.example.com", execution_id, "approve"
-            )
-            reject_url = generate_approval_url(
-                "https://api.example.com", execution_id, "reject"
-            )
+            approve_url = generate_approval_url("https://api.example.com", execution_id, "approve")
+            reject_url = generate_approval_url("https://api.example.com", execution_id, "reject")
 
             result = notifier.send_approval_request(
                 event, plan, execution_id, approve_url, reject_url

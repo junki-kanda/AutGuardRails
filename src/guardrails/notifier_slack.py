@@ -4,16 +4,14 @@ Sends rich notifications to Slack using Incoming Webhooks.
 Supports dry-run alerts, approval requests, and execution confirmations.
 """
 
-import json
 import logging
-from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from urllib.parse import urlencode
 
 import requests
-from pydantic import HttpUrl
 
-from .models import ActionExecution, ActionPlan, CostEvent, NotificationPayload
+from .models import ActionExecution, ActionPlan, CostEvent
+
 
 logger = logging.getLogger(__name__)
 
@@ -38,7 +36,7 @@ class SlackNotifier:
         self.timeout = timeout
 
     def send_dry_run_alert(
-        self, event: CostEvent, plan: ActionPlan, console_url: Optional[str] = None
+        self, event: CostEvent, plan: ActionPlan, console_url: str | None = None
     ) -> bool:
         """Send dry-run notification (no action will be taken).
 
@@ -58,8 +56,8 @@ class SlackNotifier:
         event: CostEvent,
         plan: ActionPlan,
         execution_id: str,
-        approve_url: Optional[str] = None,
-        reject_url: Optional[str] = None,
+        approve_url: str | None = None,
+        reject_url: str | None = None,
     ) -> bool:
         """Send manual approval request notification.
 
@@ -73,13 +71,11 @@ class SlackNotifier:
         Returns:
             True if notification sent successfully, False otherwise
         """
-        payload = self._build_approval_payload(
-            event, plan, execution_id, approve_url, reject_url
-        )
+        payload = self._build_approval_payload(event, plan, execution_id, approve_url, reject_url)
         return self._send_to_slack(payload)
 
     def send_execution_confirmation(
-        self, execution: ActionExecution, rollback_url: Optional[str] = None
+        self, execution: ActionExecution, rollback_url: str | None = None
     ) -> bool:
         """Send execution confirmation notification.
 
@@ -106,7 +102,7 @@ class SlackNotifier:
         return self._send_to_slack(payload)
 
     def send_error_alert(
-        self, event: CostEvent, error_message: str, execution_id: Optional[str] = None
+        self, event: CostEvent, error_message: str, execution_id: str | None = None
     ) -> bool:
         """Send error notification.
 
@@ -126,7 +122,7 @@ class SlackNotifier:
     # =========================================================================
 
     def _build_dry_run_payload(
-        self, event: CostEvent, plan: ActionPlan, console_url: Optional[str]
+        self, event: CostEvent, plan: ActionPlan, console_url: str | None
     ) -> dict[str, Any]:
         """Build Slack Block Kit payload for dry-run notification."""
         blocks: list[dict[str, Any]] = [
@@ -216,8 +212,8 @@ class SlackNotifier:
         event: CostEvent,
         plan: ActionPlan,
         execution_id: str,
-        approve_url: Optional[str],
-        reject_url: Optional[str],
+        approve_url: str | None,
+        reject_url: str | None,
     ) -> dict[str, Any]:
         """Build Slack Block Kit payload for approval request."""
         blocks: list[dict[str, Any]] = [
@@ -326,7 +322,7 @@ class SlackNotifier:
         return {"blocks": blocks}
 
     def _build_execution_payload(
-        self, execution: ActionExecution, rollback_url: Optional[str]
+        self, execution: ActionExecution, rollback_url: str | None
     ) -> dict[str, Any]:
         """Build Slack Block Kit payload for execution confirmation."""
         blocks: list[dict[str, Any]] = [
@@ -429,7 +425,7 @@ class SlackNotifier:
         return {"blocks": blocks}
 
     def _build_error_payload(
-        self, event: CostEvent, error_message: str, execution_id: Optional[str]
+        self, event: CostEvent, error_message: str, execution_id: str | None
     ) -> dict[str, Any]:
         """Build Slack Block Kit payload for error notification."""
         blocks: list[dict[str, Any]] = [
@@ -454,9 +450,7 @@ class SlackNotifier:
             blocks.append(
                 {
                     "type": "context",
-                    "elements": [
-                        {"type": "mrkdwn", "text": f"Execution ID: `{execution_id}`"}
-                    ],
+                    "elements": [{"type": "mrkdwn", "text": f"Execution ID: `{execution_id}`"}],
                 }
             )
 
@@ -524,7 +518,7 @@ def get_cost_management_console_url(account_id: str, region: str = "us-east-1") 
 
 
 def generate_approval_url(
-    base_url: str, execution_id: str, action: str, signature: Optional[str] = None
+    base_url: str, execution_id: str, action: str, signature: str | None = None
 ) -> str:
     """Generate approval/rejection URL with signature.
 

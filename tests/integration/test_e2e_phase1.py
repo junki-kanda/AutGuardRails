@@ -99,17 +99,19 @@ class TestE2EDryRunFlow:
                 {
                     "EventSource": "aws:sns",
                     "Sns": {
-                        "Message": json.dumps({
-                            "budgetName": "monthly-budget",
-                            "notificationType": "ACTUAL",
-                            "thresholdType": "PERCENTAGE",
-                            "threshold": 80,
-                            "calculatedSpend": {
-                                "actualSpend": {"amount": 250.0, "unit": "USD"}
-                            },
-                            "notificationArn": "arn:aws:budgets::123456789012:budget/monthly-budget",
-                            "time": "2024-01-15T10:30:00Z",
-                        })
+                        "Message": json.dumps(
+                            {
+                                "budgetName": "monthly-budget",
+                                "notificationType": "ACTUAL",
+                                "thresholdType": "PERCENTAGE",
+                                "threshold": 80,
+                                "calculatedSpend": {
+                                    "actualSpend": {"amount": 250.0, "unit": "USD"}
+                                },
+                                "notificationArn": "arn:aws:budgets::123456789012:budget/monthly-budget",
+                                "time": "2024-01-15T10:30:00Z",
+                            }
+                        )
                     },
                 }
             ]
@@ -461,9 +463,7 @@ class TestE2EMultiplePolicies:
                 "min_amount_usd": 50.0,  # Lower than dry-run policy
             },
             "scope": {
-                "principals": [
-                    {"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/test"}
-                ]
+                "principals": [{"type": "iam_role", "arn": "arn:aws:iam::123456789012:role/test"}]
             },
             "actions": [{"type": "notify_only"}],
             "notify": {"slack_webhook_ssm_param": "/test/webhook"},

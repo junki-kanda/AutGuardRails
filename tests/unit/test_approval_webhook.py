@@ -306,11 +306,7 @@ class TestHandleApproval:
             executed_by="system",
             action="attach_deny_policy",
             target="arn:aws:iam::123456789012:role/test",
-            diff={
-                "policy_document": {
-                    "Statement": [{"Action": ["ec2:RunInstances"]}]
-                }
-            },
+            diff={"policy_document": {"Statement": [{"Action": ["ec2:RunInstances"]}]}},
         )
         mock_audit.get_execution.return_value = mock_execution
 
@@ -362,11 +358,7 @@ class TestHandleApproval:
             executed_by="system",
             action="attach_deny_policy",
             target="arn:aws:iam::123456789012:role/test",
-            diff={
-                "policy_document": {
-                    "Statement": [{"Action": ["ec2:RunInstances"]}]
-                }
-            },
+            diff={"policy_document": {"Statement": [{"Action": ["ec2:RunInstances"]}]}},
         )
         mock_audit.get_execution.return_value = mock_execution
 
@@ -404,11 +396,7 @@ class TestHandleApproval:
             executed_by="system",
             action="attach_deny_policy",
             target="arn:aws:iam::123456789012:role/test",
-            diff={
-                "policy_document": {
-                    "Statement": [{"Action": ["ec2:RunInstances"]}]
-                }
-            },
+            diff={"policy_document": {"Statement": [{"Action": ["ec2:RunInstances"]}]}},
         )
         mock_audit.get_execution.return_value = mock_execution
 
@@ -426,9 +414,7 @@ class TestHandleApproval:
         mock_executor.execute_action_plan.return_value = [executed_execution]
 
         # Mock notification failure
-        mock_notifier.send_execution_confirmation.side_effect = Exception(
-            "Slack error"
-        )
+        mock_notifier.send_execution_confirmation.side_effect = Exception("Slack error")
 
         timestamp = datetime.utcnow().isoformat()
         signature = handler._generate_signature("exec-123", timestamp)

@@ -8,12 +8,13 @@ import json
 import logging
 import os
 from datetime import datetime
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 from ..models import CostEvent
 from ..notifier_slack import SlackNotifier, get_cost_management_console_url
 from ..policy_engine import PolicyEngine, load_policies_from_directory
+
 
 logger = logging.getLogger(__name__)
 logger.setLevel(os.getenv("LOG_LEVEL", "INFO"))
@@ -58,9 +59,7 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
             logger.info("No policy matched this cost event")
             return {"statusCode": 200, "body": "no_match"}
 
-        logger.info(
-            f"Policy matched: {action_plan.matched_policy_id} (mode: {action_plan.mode})"
-        )
+        logger.info(f"Policy matched: {action_plan.matched_policy_id} (mode: {action_plan.mode})")
 
         # Check global dry-run override
         global_dry_run = os.getenv("DRY_RUN", "false").lower() == "true"
@@ -73,13 +72,15 @@ def lambda_handler(event: dict[str, Any], context: Any) -> dict[str, Any]:
 
         return {
             "statusCode": 200,
-            "body": json.dumps({
-                "status": "success",
-                "event_id": cost_event.event_id,
-                "policy_id": action_plan.matched_policy_id,
-                "mode": action_plan.mode,
-                "result": result,
-            }),
+            "body": json.dumps(
+                {
+                    "status": "success",
+                    "event_id": cost_event.event_id,
+                    "policy_id": action_plan.matched_policy_id,
+                    "mode": action_plan.mode,
+                    "result": result,
+                }
+            ),
         }
 
     except Exception as e:
@@ -302,7 +303,6 @@ def execute_action_plan(cost_event: CostEvent, action_plan: Any) -> dict[str, An
         from ..audit_store import AuditStore
         from ..executor_iam import IAMExecutor
         from ..handlers.approval_webhook import ApprovalWebhookHandler
-        from ..models import ActionExecution
 
         # Create execution records for each action/principal combination
         audit_store = AuditStore()

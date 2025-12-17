@@ -97,16 +97,18 @@ class TestE2EManualApprovalFlow:
         # Create IAM role
         iam.create_role(
             RoleName="ci-deployer",
-            AssumeRolePolicyDocument=json.dumps({
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"Service": "ec2.amazonaws.com"},
-                        "Action": "sts:AssumeRole",
-                    }
-                ],
-            }),
+            AssumeRolePolicyDocument=json.dumps(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {"Service": "ec2.amazonaws.com"},
+                            "Action": "sts:AssumeRole",
+                        }
+                    ],
+                }
+            ),
         )
 
         # Create DynamoDB audit table
@@ -137,17 +139,19 @@ class TestE2EManualApprovalFlow:
                 {
                     "EventSource": "aws:sns",
                     "Sns": {
-                        "Message": json.dumps({
-                            "budgetName": "monthly-budget",
-                            "notificationType": "ACTUAL",
-                            "thresholdType": "PERCENTAGE",
-                            "threshold": 90,
-                            "calculatedSpend": {
-                                "actualSpend": {"amount": 600.0, "unit": "USD"}
-                            },
-                            "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
-                            "time": "2024-01-15T10:30:00Z",
-                        })
+                        "Message": json.dumps(
+                            {
+                                "budgetName": "monthly-budget",
+                                "notificationType": "ACTUAL",
+                                "thresholdType": "PERCENTAGE",
+                                "threshold": 90,
+                                "calculatedSpend": {
+                                    "actualSpend": {"amount": 600.0, "unit": "USD"}
+                                },
+                                "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
+                                "time": "2024-01-15T10:30:00Z",
+                            }
+                        )
                     },
                 }
             ]
@@ -272,9 +276,9 @@ class TestE2EManualApprovalFlow:
                 # Verify policy document contains deny actions
                 policy_arn = guardrails_policy["PolicyArn"]
                 policy_version = iam.get_policy(PolicyArn=policy_arn)["Policy"]["DefaultVersionId"]
-                policy_doc = iam.get_policy_version(
-                    PolicyArn=policy_arn, VersionId=policy_version
-                )["PolicyVersion"]["Document"]
+                policy_doc = iam.get_policy_version(PolicyArn=policy_arn, VersionId=policy_version)[
+                    "PolicyVersion"
+                ]["Document"]
 
                 assert "Statement" in policy_doc
                 statement = policy_doc["Statement"][0]
@@ -303,16 +307,18 @@ class TestE2EManualApprovalFlow:
 
         iam.create_role(
             RoleName="ci-deployer",
-            AssumeRolePolicyDocument=json.dumps({
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"Service": "ec2.amazonaws.com"},
-                        "Action": "sts:AssumeRole",
-                    }
-                ],
-            }),
+            AssumeRolePolicyDocument=json.dumps(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {"Service": "ec2.amazonaws.com"},
+                            "Action": "sts:AssumeRole",
+                        }
+                    ],
+                }
+            ),
         )
 
         dynamodb.create_table(
@@ -341,17 +347,19 @@ class TestE2EManualApprovalFlow:
                 {
                     "EventSource": "aws:sns",
                     "Sns": {
-                        "Message": json.dumps({
-                            "budgetName": "monthly-budget",
-                            "notificationType": "ACTUAL",
-                            "thresholdType": "PERCENTAGE",
-                            "threshold": 90,
-                            "calculatedSpend": {
-                                "actualSpend": {"amount": 600.0, "unit": "USD"}
-                            },
-                            "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
-                            "time": "2024-01-15T10:30:00Z",
-                        })
+                        "Message": json.dumps(
+                            {
+                                "budgetName": "monthly-budget",
+                                "notificationType": "ACTUAL",
+                                "thresholdType": "PERCENTAGE",
+                                "threshold": 90,
+                                "calculatedSpend": {
+                                    "actualSpend": {"amount": 600.0, "unit": "USD"}
+                                },
+                                "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
+                                "time": "2024-01-15T10:30:00Z",
+                            }
+                        )
                     },
                 }
             ]
@@ -436,16 +444,18 @@ class TestE2EManualApprovalFlow:
 
         iam.create_role(
             RoleName="ci-deployer",
-            AssumeRolePolicyDocument=json.dumps({
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"Service": "ec2.amazonaws.com"},
-                        "Action": "sts:AssumeRole",
-                    }
-                ],
-            }),
+            AssumeRolePolicyDocument=json.dumps(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {"Service": "ec2.amazonaws.com"},
+                            "Action": "sts:AssumeRole",
+                        }
+                    ],
+                }
+            ),
         )
 
         dynamodb.create_table(
@@ -474,17 +484,19 @@ class TestE2EManualApprovalFlow:
                 {
                     "EventSource": "aws:sns",
                     "Sns": {
-                        "Message": json.dumps({
-                            "budgetName": "monthly-budget",
-                            "notificationType": "ACTUAL",
-                            "thresholdType": "PERCENTAGE",
-                            "threshold": 90,
-                            "calculatedSpend": {
-                                "actualSpend": {"amount": 600.0, "unit": "USD"}
-                            },
-                            "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
-                            "time": "2024-01-15T10:30:00Z",
-                        })
+                        "Message": json.dumps(
+                            {
+                                "budgetName": "monthly-budget",
+                                "notificationType": "ACTUAL",
+                                "thresholdType": "PERCENTAGE",
+                                "threshold": 90,
+                                "calculatedSpend": {
+                                    "actualSpend": {"amount": 600.0, "unit": "USD"}
+                                },
+                                "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
+                                "time": "2024-01-15T10:30:00Z",
+                            }
+                        )
                     },
                 }
             ]
@@ -552,16 +564,18 @@ class TestE2EManualApprovalFlow:
 
         iam.create_role(
             RoleName="ci-deployer",
-            AssumeRolePolicyDocument=json.dumps({
-                "Version": "2012-10-17",
-                "Statement": [
-                    {
-                        "Effect": "Allow",
-                        "Principal": {"Service": "ec2.amazonaws.com"},
-                        "Action": "sts:AssumeRole",
-                    }
-                ],
-            }),
+            AssumeRolePolicyDocument=json.dumps(
+                {
+                    "Version": "2012-10-17",
+                    "Statement": [
+                        {
+                            "Effect": "Allow",
+                            "Principal": {"Service": "ec2.amazonaws.com"},
+                            "Action": "sts:AssumeRole",
+                        }
+                    ],
+                }
+            ),
         )
 
         dynamodb.create_table(
@@ -590,17 +604,19 @@ class TestE2EManualApprovalFlow:
                 {
                     "EventSource": "aws:sns",
                     "Sns": {
-                        "Message": json.dumps({
-                            "budgetName": "monthly-budget",
-                            "notificationType": "ACTUAL",
-                            "thresholdType": "PERCENTAGE",
-                            "threshold": 90,
-                            "calculatedSpend": {
-                                "actualSpend": {"amount": 600.0, "unit": "USD"}
-                            },
-                            "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
-                            "time": "2024-01-15T10:30:00Z",
-                        })
+                        "Message": json.dumps(
+                            {
+                                "budgetName": "monthly-budget",
+                                "notificationType": "ACTUAL",
+                                "thresholdType": "PERCENTAGE",
+                                "threshold": 90,
+                                "calculatedSpend": {
+                                    "actualSpend": {"amount": 600.0, "unit": "USD"}
+                                },
+                                "notificationArn": "arn:aws:budgets::123456789012:budget/monthly",
+                                "time": "2024-01-15T10:30:00Z",
+                            }
+                        )
                     },
                 }
             ]

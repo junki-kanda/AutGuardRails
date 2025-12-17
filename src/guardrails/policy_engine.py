@@ -8,7 +8,6 @@ This is a pure, stateless, testable module - no side effects.
 import logging
 from datetime import datetime
 from pathlib import Path
-from typing import Optional
 
 import yaml
 
@@ -19,6 +18,7 @@ from src.guardrails.models import (
     PolicyExceptions,
     TimeWindow,
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -31,9 +31,7 @@ class PolicyEngine:
     No side effects - safe for testing and concurrent execution.
     """
 
-    def evaluate(
-        self, event: CostEvent, policies: list[GuardrailPolicy]
-    ) -> ActionPlan:
+    def evaluate(self, event: CostEvent, policies: list[GuardrailPolicy]) -> ActionPlan:
         """
         Evaluate a cost event against all policies.
 
@@ -75,9 +73,7 @@ class PolicyEngine:
         """
         # Check source
         if event.source not in policy.match.source:
-            logger.debug(
-                f"Source mismatch: {event.source} not in {policy.match.source}"
-            )
+            logger.debug(f"Source mismatch: {event.source} not in {policy.match.source}")
             return False
 
         # Check account ID
@@ -89,9 +85,7 @@ class PolicyEngine:
 
         # Check minimum amount
         if event.amount < policy.match.min_amount_usd:
-            logger.debug(
-                f"Amount below threshold: {event.amount} < {policy.match.min_amount_usd}"
-            )
+            logger.debug(f"Amount below threshold: {event.amount} < {policy.match.min_amount_usd}")
             return False
 
         # Check maximum amount (if set)
@@ -106,18 +100,14 @@ class PolicyEngine:
         if policy.match.services is not None:
             event_service = event.details.get("service")
             if event_service not in policy.match.services:
-                logger.debug(
-                    f"Service mismatch: {event_service} not in {policy.match.services}"
-                )
+                logger.debug(f"Service mismatch: {event_service} not in {policy.match.services}")
                 return False
 
         # Check regions (if specified)
         if policy.match.regions is not None:
             event_region = event.details.get("region")
             if event_region not in policy.match.regions:
-                logger.debug(
-                    f"Region mismatch: {event_region} not in {policy.match.regions}"
-                )
+                logger.debug(f"Region mismatch: {event_region} not in {policy.match.regions}")
                 return False
 
         # Check exceptions (allowlist)
@@ -153,17 +143,13 @@ class PolicyEngine:
                 return True
 
         # Check time window exemptions
-        if exceptions.time_windows and self._in_exempted_time_window(
-            exceptions.time_windows
-        ):
+        if exceptions.time_windows and self._in_exempted_time_window(exceptions.time_windows):
             logger.debug("Current time is in exempted time window")
             return True
 
         return False
 
-    def _principal_matches_allowlist(
-        self, principal_arn: str, allowlist: list[str]
-    ) -> bool:
+    def _principal_matches_allowlist(self, principal_arn: str, allowlist: list[str]) -> bool:
         """
         Check if principal ARN matches any pattern in allowlist.
 
@@ -222,9 +208,7 @@ class PolicyEngine:
 
         return False
 
-    def _build_action_plan(
-        self, event: CostEvent, policy: GuardrailPolicy
-    ) -> ActionPlan:
+    def _build_action_plan(self, event: CostEvent, policy: GuardrailPolicy) -> ActionPlan:
         """
         Build an action plan from a matched policy.
 
@@ -274,7 +258,7 @@ def load_policy_from_file(file_path: str | Path) -> GuardrailPolicy:
 
     logger.info(f"Loading policy from {file_path}")
 
-    with open(file_path, "r", encoding="utf-8") as f:
+    with open(file_path, encoding="utf-8") as f:
         data = yaml.safe_load(f)
 
     policy = GuardrailPolicy(**data)
@@ -329,7 +313,7 @@ def load_policies_from_directory(
     return policies
 
 
-def validate_policy_file(file_path: str | Path) -> tuple[bool, Optional[str]]:
+def validate_policy_file(file_path: str | Path) -> tuple[bool, str | None]:
     """
     Validate a policy YAML file without loading it into memory.
 

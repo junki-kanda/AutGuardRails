@@ -8,13 +8,14 @@ import hashlib
 import json
 import logging
 from datetime import datetime, timedelta
-from typing import Any, Optional
+from typing import Any
 from uuid import uuid4
 
 import boto3
 from botocore.exceptions import ClientError
 
 from .models import ActionExecution, ActionPlan, PolicyAction
+
 
 logger = logging.getLogger(__name__)
 
@@ -79,7 +80,7 @@ class IAMExecutor:
         policy_id: str,
         event_id: str,
         executed_by: str,
-        ttl_minutes: Optional[int],
+        ttl_minutes: int | None,
     ) -> ActionExecution:
         """Execute a single action on a single principal.
 
@@ -193,9 +194,9 @@ class IAMExecutor:
         }
 
         # Generate unique policy name (hash of actions + timestamp)
-        policy_hash = hashlib.sha256(
-            json.dumps(deny_actions, sort_keys=True).encode()
-        ).hexdigest()[:8]
+        policy_hash = hashlib.sha256(json.dumps(deny_actions, sort_keys=True).encode()).hexdigest()[
+            :8
+        ]
         policy_name = f"guardrails-deny-{policy_id}-{policy_hash}"
 
         # Check if policy already exists (idempotency)
@@ -227,13 +228,9 @@ class IAMExecutor:
 
         # Attach policy to principal
         if principal_type == "role":
-            self.iam_client.attach_role_policy(
-                RoleName=principal_name, PolicyArn=policy_arn
-            )
+            self.iam_client.attach_role_policy(RoleName=principal_name, PolicyArn=policy_arn)
         elif principal_type == "user":
-            self.iam_client.attach_user_policy(
-                UserName=principal_name, PolicyArn=policy_arn
-            )
+            self.iam_client.attach_user_policy(UserName=principal_name, PolicyArn=policy_arn)
         else:
             raise ValueError(f"Unsupported principal type: {principal_type}")
 
@@ -315,7 +312,6 @@ class IAMExecutor:
             return
 
         policy_arn = diff.get("policy_arn")
-        principal_arn = execution.target
         principal_type = diff.get("principal_type")
         principal_name = diff.get("principal_name")
 
@@ -324,13 +320,9 @@ class IAMExecutor:
 
         # Detach policy
         if principal_type == "role":
-            self.iam_client.detach_role_policy(
-                RoleName=principal_name, PolicyArn=policy_arn
-            )
+            self.iam_client.detach_role_policy(RoleName=principal_name, PolicyArn=policy_arn)
         elif principal_type == "user":
-            self.iam_client.detach_user_policy(
-                UserName=principal_name, PolicyArn=policy_arn
-            )
+            self.iam_client.detach_user_policy(UserName=principal_name, PolicyArn=policy_arn)
 
         logger.info(f"Detached {policy_arn} from {principal_type} {principal_name}")
 
@@ -389,9 +381,7 @@ class IAMExecutor:
 
         return principal_type, principal_name
 
-    def _list_attached_policies(
-        self, principal_type: str, principal_name: str
-    ) -> list[str]:
+    def _list_attached_policies(self, principal_type: str, principal_name: str) -> list[str]:
         """List attached managed policies for a principal.
 
         Args:

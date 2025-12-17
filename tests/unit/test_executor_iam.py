@@ -1,14 +1,13 @@
 """Tests for IAM Executor."""
 
 from datetime import datetime, timedelta
-from uuid import uuid4
 
 import boto3
 import pytest
 from moto import mock_aws
 
 from src.guardrails.executor_iam import IAMExecutor
-from src.guardrails.models import ActionExecution, ActionPlan, PolicyAction, Principal
+from src.guardrails.models import ActionExecution, ActionPlan, PolicyAction
 
 
 @pytest.fixture
@@ -141,16 +140,12 @@ class TestExecuteActionPlan:
             matched=True,
             matched_policy_id="test-policy",
             mode="manual",
-            actions=[
-                PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])
-            ],
+            actions=[PolicyAction(type="attach_deny_policy", deny=["ec2:RunInstances"])],
             ttl_minutes=180,
             target_principals=["arn:aws:iam::123456789012:role/test"],
         )
 
-        executions = iam_executor_dry_run.execute_action_plan(
-            plan, event_id="evt-123"
-        )
+        executions = iam_executor_dry_run.execute_action_plan(plan, event_id="evt-123")
 
         assert len(executions) == 1
         assert executions[0].status == "executed"
